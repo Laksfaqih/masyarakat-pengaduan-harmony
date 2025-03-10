@@ -4,10 +4,20 @@ import { supabase } from "@/integrations/supabase/client";
 import type { User } from '@supabase/supabase-js';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
+import { UserRole } from '@/types';
+
+interface Profile {
+  id: string;
+  name: string;
+  role: UserRole;
+  avatar_url?: string;
+  phone_number?: string;
+  address?: string;
+}
 
 interface AuthContextType {
   user: User | null;
-  profile: any | null;
+  profile: Profile | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
@@ -18,7 +28,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [profile, setProfile] = useState<any | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
@@ -48,6 +58,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   async function fetchProfile(userId: string) {
+    // Using any as a workaround for the type issue
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
@@ -59,7 +70,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    setProfile(data);
+    setProfile(data as Profile);
   }
 
   const signIn = async (email: string, password: string) => {
@@ -75,14 +86,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       // Redirect based on user role
       if (data.user) {
-        const { data: profile } = await supabase
+        // Using any as a workaround for the type issue
+        const { data: profileData } = await supabase
           .from('profiles')
           .select('role')
           .eq('id', data.user.id)
           .single();
 
-        if (profile) {
-          switch (profile.role) {
+        if (profileData) {
+          switch (profileData.role as UserRole) {
             case 'super_admin':
               navigate('/dashboard/super-admin');
               break;

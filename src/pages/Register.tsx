@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,7 +7,8 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Lock, Mail, User } from "lucide-react";
-import { register, useAuth } from "@/lib/auth";
+import { useAuth } from "@/lib/auth-context";
+import { toast } from "sonner";
 
 const Register = () => {
   const [name, setName] = useState("");
@@ -16,26 +18,22 @@ const Register = () => {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const { signUp } = useAuth();
-  const { toast } = useToast();
+  const { toast: uiToast } = useToast();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!name || !email || !password || !confirmPassword) {
-      toast({
-        title: "Formulir tidak lengkap",
-        description: "Mohon isi semua bidang yang diperlukan",
-        variant: "destructive",
+      toast("Formulir tidak lengkap", {
+        description: "Mohon isi semua bidang yang diperlukan"
       });
       return;
     }
     
     if (password !== confirmPassword) {
-      toast({
-        title: "Kata sandi tidak cocok",
-        description: "Pastikan kata sandi dan konfirmasi kata sandi sama",
-        variant: "destructive",
+      toast("Kata sandi tidak cocok", {
+        description: "Pastikan kata sandi dan konfirmasi kata sandi sama"
       });
       return;
     }
@@ -43,13 +41,11 @@ const Register = () => {
     setLoading(true);
     
     try {
-      await signUp(name, email, password);
+      await signUp(email, password, name);
     } catch (error) {
       console.error("Registration error:", error);
-      toast({
-        title: "Terjadi kesalahan",
-        description: "Gagal terhubung dengan sistem. Silakan coba lagi.",
-        variant: "destructive",
+      toast("Terjadi kesalahan", {
+        description: "Gagal terhubung dengan sistem. Silakan coba lagi."
       });
     } finally {
       setLoading(false);

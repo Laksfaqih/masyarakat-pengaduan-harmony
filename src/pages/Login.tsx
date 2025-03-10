@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,7 +7,8 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Lock, Mail } from "lucide-react";
-import { login } from "@/lib/auth";
+import { useAuth } from "@/lib/auth-context";
+import { toast } from "sonner";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -14,17 +16,15 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const { signIn } = useAuth();
-  const { toast } = useToast();
+  const { toast: uiToast } = useToast();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!email || !password) {
-      toast({
-        title: "Formulir tidak lengkap",
-        description: "Mohon isi semua bidang yang diperlukan",
-        variant: "destructive",
+      toast("Formulir tidak lengkap", {
+        description: "Mohon isi semua bidang yang diperlukan"
       });
       return;
     }
@@ -35,10 +35,8 @@ const Login = () => {
       await signIn(email, password);
     } catch (error) {
       console.error("Login error:", error);
-      toast({
-        title: "Terjadi kesalahan",
-        description: "Gagal terhubung dengan sistem. Silakan coba lagi.",
-        variant: "destructive",
+      toast("Terjadi kesalahan", {
+        description: "Gagal terhubung dengan sistem. Silakan coba lagi."
       });
     } finally {
       setLoading(false);
