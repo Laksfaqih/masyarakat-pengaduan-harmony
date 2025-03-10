@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Lock, Mail, User } from "lucide-react";
-import { register } from "@/lib/auth";
+import { register, useAuth } from "@/lib/auth";
 
 const Register = () => {
   const [name, setName] = useState("");
@@ -16,13 +15,13 @@ const Register = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const { signUp } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Basic validation
     if (!name || !email || !password || !confirmPassword) {
       toast({
         title: "Formulir tidak lengkap",
@@ -44,21 +43,7 @@ const Register = () => {
     setLoading(true);
     
     try {
-      const response = await register(name, email, password);
-      
-      if (response.success) {
-        toast({
-          title: "Pendaftaran berhasil",
-          description: "Silakan periksa email Anda untuk verifikasi akun",
-        });
-        navigate('/verification-sent', { state: { email } });
-      } else {
-        toast({
-          title: "Pendaftaran gagal",
-          description: response.message,
-          variant: "destructive",
-        });
-      }
+      await signUp(name, email, password);
     } catch (error) {
       console.error("Registration error:", error);
       toast({

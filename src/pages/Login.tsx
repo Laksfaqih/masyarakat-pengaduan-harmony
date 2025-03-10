@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,6 +13,7 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const { signIn } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -32,32 +32,7 @@ const Login = () => {
     setLoading(true);
     
     try {
-      const response = await login(email, password);
-      
-      if (response.success) {
-        toast({
-          title: "Login berhasil",
-          description: "Selamat datang kembali!",
-        });
-        
-        // Redirect based on user role
-        const { role } = response.user!;
-        if (role === 'super_admin') {
-          navigate('/dashboard/super-admin');
-        } else if (role === 'village_head') {
-          navigate('/dashboard/village-head');
-        } else if (role === 'secretary') {
-          navigate('/dashboard/secretary');
-        } else {
-          navigate('/dashboard/citizen');
-        }
-      } else {
-        toast({
-          title: "Login gagal",
-          description: response.message,
-          variant: "destructive",
-        });
-      }
+      await signIn(email, password);
     } catch (error) {
       console.error("Login error:", error);
       toast({

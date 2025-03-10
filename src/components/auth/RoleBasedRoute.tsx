@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { hasRole, isAuthenticated } from '@/lib/auth';
+import { useAuth } from '@/lib/auth-context';
 import { UserRole } from '@/types';
 
 interface RoleBasedRouteProps {
@@ -16,20 +16,23 @@ const RoleBasedRoute: React.FC<RoleBasedRouteProps> = ({
   redirectTo = '/login',
 }) => {
   const location = useLocation();
-  const isAuth = isAuthenticated();
-  const hasPermission = isAuth && hasRole(allowedRoles);
+  const { user, profile, loading } = useAuth();
 
-  if (!isAuth) {
-    // User is not authenticated, redirect to login
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (!user) {
     return <Navigate to={redirectTo} state={{ from: location }} replace />;
   }
 
+  const roles = Array.isArray(allowedRoles) ? allowedRoles : [allowedRoles];
+  const hasPermission = profile && roles.includes(profile.role);
+
   if (!hasPermission) {
-    // User is authenticated but doesn't have the required role
     return <Navigate to="/unauthorized" replace />;
   }
 
-  // User is authenticated and has the required role
   return <>{element}</>;
 };
 
