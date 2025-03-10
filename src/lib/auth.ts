@@ -29,6 +29,15 @@ const MOCK_USERS = [
     role: 'village_head' as UserRole,
     verified: true,
     avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=1587&ixlib=rb-4.0.3',
+  },
+  {
+    id: '4',
+    name: 'Admin Utama',
+    email: 'admin@example.com',
+    password: 'password123',
+    role: 'super_admin' as UserRole,
+    verified: true,
+    avatar: 'https://images.unsplash.com/photo-1531427186611-ecfd6d936c79?auto=format&fit=crop&q=80&w=1587&ixlib=rb-4.0.3',
   }
 ];
 
@@ -103,7 +112,7 @@ export const register = async (
     name,
     email,
     password,
-    role: 'citizen' as UserRole,
+    role: 'citizen' as UserRole, // Default role for new registrations
     verified: false,
     avatar: undefined,
   };
@@ -151,9 +160,25 @@ export const logout = (): void => {
 };
 
 // Function to verify if user has specific role
-export const hasRole = (role: UserRole): boolean => {
+export const hasRole = (role: UserRole | UserRole[]): boolean => {
   const user = getCurrentUser();
-  return user !== null && user.role === role;
+  if (!user) return false;
+  
+  if (Array.isArray(role)) {
+    return role.includes(user.role);
+  }
+  
+  return user.role === role;
+};
+
+// Function to verify if user is a super admin
+export const isSuperAdmin = (): boolean => {
+  return hasRole('super_admin');
+};
+
+// Function to verify if user has admin privileges (super_admin or village_head)
+export const hasAdminPrivileges = (): boolean => {
+  return hasRole(['super_admin', 'village_head']);
 };
 
 // Function to simulate email verification
@@ -167,4 +192,55 @@ export const verifyEmail = async (token: string): Promise<AuthResponse> => {
     success: true,
     message: 'Email verified successfully',
   };
+};
+
+// Function for super admin to change user role
+export const changeUserRole = async (userId: string, newRole: UserRole): Promise<AuthResponse> => {
+  // Simulate API request
+  await new Promise(resolve => setTimeout(resolve, 1000));
+  
+  // Check if current user is super admin
+  if (!isSuperAdmin()) {
+    return { 
+      success: false, 
+      message: 'Unauthorized. Only super admins can change user roles.' 
+    };
+  }
+  
+  // Find user in mock data
+  const userIndex = MOCK_USERS.findIndex(u => u.id === userId);
+  
+  if (userIndex === -1) {
+    return { success: false, message: 'User not found' };
+  }
+  
+  // Update user role
+  MOCK_USERS[userIndex].role = newRole;
+  
+  return {
+    success: true,
+    message: `User role changed to ${newRole} successfully`,
+  };
+};
+
+// Get all users (for super admin)
+export const getAllUsers = async (): Promise<User[]> => {
+  // Simulate API request
+  await new Promise(resolve => setTimeout(resolve, 1000));
+  
+  // Check if current user is super admin
+  if (!isSuperAdmin()) {
+    console.error('Unauthorized. Only super admins can view all users.');
+    return [];
+  }
+  
+  // Return safe user objects without passwords
+  return MOCK_USERS.map(user => ({
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    verified: user.verified,
+    avatar: user.avatar,
+  }));
 };

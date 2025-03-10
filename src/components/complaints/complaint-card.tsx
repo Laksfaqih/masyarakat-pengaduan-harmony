@@ -1,104 +1,84 @@
 
-import React from 'react';
+import React from "react";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
-import { Eye, MessageCircle } from "lucide-react";
-import { cn } from "@/lib/utils";
-
-export type ComplaintStatus = "pending" | "processing" | "completed";
+import { Complaint } from "@/types";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { formatDistanceToNow } from "date-fns";
+import { id } from "date-fns/locale";
 
 export interface ComplaintCardProps {
-  id: string;
-  title: string;
-  description: string;
-  category: string;
-  status: ComplaintStatus;
-  date: string;
-  hasAttachments?: boolean;
-  onView?: (id: string) => void;
-  onRespond?: (id: string) => void;
+  complaint: Complaint;
 }
 
-export function ComplaintCard({
-  id,
-  title,
-  description,
-  category,
-  status,
-  date,
-  hasAttachments,
-  onView,
-  onRespond,
-}: ComplaintCardProps) {
-  const statusMap = {
-    pending: { label: "Menunggu Konfirmasi", class: "status-badge pending" },
-    processing: { label: "Sedang Diproses", class: "status-badge processing" },
-    completed: { label: "Selesai", class: "status-badge completed" },
+export function ComplaintCard({ complaint }: ComplaintCardProps) {
+  // Status colors
+  const statusColors = {
+    pending: "bg-yellow-100 text-yellow-800 hover:bg-yellow-100/80",
+    processing: "bg-blue-100 text-blue-800 hover:bg-blue-100/80",
+    completed: "bg-green-100 text-green-800 hover:bg-green-100/80",
+  };
+
+  // Priority colors
+  const priorityColors = {
+    low: "bg-gray-100 text-gray-800 hover:bg-gray-100/80",
+    medium: "bg-orange-100 text-orange-800 hover:bg-orange-100/80",
+    high: "bg-red-100 text-red-800 hover:bg-red-100/80",
+  };
+
+  // Format date
+  const formatDate = (date: Date) => {
+    return formatDistanceToNow(date, { addSuffix: true, locale: id });
+  };
+
+  // Get initials for avatar fallback
+  const getInitials = (name: string) => {
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .substring(0, 2);
   };
 
   return (
-    <Card className="w-full overflow-hidden transition-all hover:shadow-md">
-      <CardHeader className="p-4 flex justify-between items-start">
-        <div>
-          <h3 className="font-medium text-lg line-clamp-1">{title}</h3>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
-            <Badge variant="outline">{category}</Badge>
-            <span>•</span>
-            <time dateTime={date}>{date}</time>
-            {hasAttachments && (
-              <>
-                <span>•</span>
-                <span className="flex items-center">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                    className="w-4 h-4 mr-1"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M15.621 4.379a3 3 0 00-4.242 0l-7 7a3 3 0 004.241 4.243h.001l.497-.5a.75.75 0 011.064 1.057l-.498.501-.002.002a4.5 4.5 0 01-6.364-6.364l7-7a4.5 4.5 0 016.368 6.36l-3.455 3.553A2.625 2.625 0 119.52 9.52l3.45-3.451a.75.75 0 111.061 1.06l-3.45 3.451a1.125 1.125 0 001.587 1.595l3.454-3.553a3 3 0 000-4.242z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                  Lampiran
-                </span>
-              </>
-            )}
-          </div>
+    <Card>
+      <CardHeader className="pb-2">
+        <div className="flex justify-between items-start">
+          <CardTitle className="text-lg font-semibold">{complaint.title}</CardTitle>
+          <Badge className={statusColors[complaint.status]}>
+            {complaint.status === "pending"
+              ? "Menunggu"
+              : complaint.status === "processing"
+              ? "Diproses"
+              : "Selesai"}
+          </Badge>
         </div>
-        <div className={cn(statusMap[status].class)}>
-          {statusMap[status].label}
+        <div className="flex space-x-2 text-sm text-muted-foreground">
+          <span>{complaint.category.name}</span>
+          <span>•</span>
+          <span>{formatDate(complaint.createdAt)}</span>
         </div>
       </CardHeader>
-      <CardContent className="p-4 pt-0">
-        <p className="text-sm text-muted-foreground line-clamp-2">{description}</p>
+      <CardContent>
+        <p className="text-sm text-gray-600 line-clamp-2">{complaint.description}</p>
       </CardContent>
-      <CardFooter className="p-4 pt-0 flex justify-end gap-2">
-        <Button
-          variant="outline"
-          size="sm"
-          className="h-8"
-          onClick={() => onView && onView(id)}
-        >
-          <Eye className="h-3.5 w-3.5 mr-1" />
-          Lihat
-        </Button>
-        {onRespond && (
-          <Button
-            variant="default"
-            size="sm"
-            className="h-8"
-            onClick={() => onRespond(id)}
-          >
-            <MessageCircle className="h-3.5 w-3.5 mr-1" />
-            Tanggapi
-          </Button>
-        )}
+      <CardFooter className="pt-2 flex justify-between items-center">
+        <div className="flex items-center space-x-2">
+          <Avatar className="h-7 w-7">
+            <AvatarImage src={complaint.createdBy.avatar} alt={complaint.createdBy.name} />
+            <AvatarFallback>{getInitials(complaint.createdBy.name)}</AvatarFallback>
+          </Avatar>
+          <span className="text-xs">{complaint.createdBy.name}</span>
+        </div>
+        <Badge className={priorityColors[complaint.priority]} variant="outline">
+          {complaint.priority === "low"
+            ? "Rendah"
+            : complaint.priority === "medium"
+            ? "Sedang"
+            : "Tinggi"}
+        </Badge>
       </CardFooter>
     </Card>
   );
 }
-
-export default ComplaintCard;

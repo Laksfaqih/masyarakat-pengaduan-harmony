@@ -1,5 +1,4 @@
-
-export type UserRole = 'citizen' | 'secretary' | 'village_head';
+export type UserRole = 'super_admin' | 'citizen' | 'secretary' | 'village_head';
 
 export interface User {
   id: string;
@@ -71,7 +70,6 @@ export interface NotificationType {
   relatedComplaintId?: string;
 }
 
-// Mock data functions
 export const generateMockComplaintStats = (): ComplaintStats => {
   return {
     totalComplaints: 124,

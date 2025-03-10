@@ -42,7 +42,9 @@ const Login = () => {
         
         // Redirect based on user role
         const { role } = response.user!;
-        if (role === 'village_head') {
+        if (role === 'super_admin') {
+          navigate('/dashboard/super-admin');
+        } else if (role === 'village_head') {
           navigate('/dashboard/village-head');
         } else if (role === 'secretary') {
           navigate('/dashboard/secretary');
@@ -135,6 +137,28 @@ const Login = () => {
               {loading ? "Memproses..." : "Masuk"}
             </Button>
           </form>
+          <div className="mt-4 text-sm text-center text-muted-foreground">
+            <h3 className="font-semibold mb-2">Demo Akun:</h3>
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              <div>
+                <p><strong>Super Admin:</strong></p>
+                <p>admin@example.com</p>
+              </div>
+              <div>
+                <p><strong>Masyarakat:</strong></p>
+                <p>citizen@example.com</p>
+              </div>
+              <div>
+                <p><strong>Sekretaris:</strong></p>
+                <p>secretary@example.com</p>
+              </div>
+              <div>
+                <p><strong>Kepala Desa:</strong></p>
+                <p>villagehead@example.com</p>
+              </div>
+            </div>
+            <p className="mt-2">Password untuk semua: <strong>password123</strong></p>
+          </div>
         </CardContent>
         <CardFooter className="flex flex-col space-y-4">
           <div className="text-center text-sm">
