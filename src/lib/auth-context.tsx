@@ -1,19 +1,10 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, Profile } from "@/integrations/supabase/client";
 import type { User } from '@supabase/supabase-js';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { UserRole } from '@/types';
-
-interface Profile {
-  id: string;
-  name: string;
-  role: UserRole;
-  avatar_url?: string;
-  phone_number?: string;
-  address?: string;
-}
 
 interface AuthContextType {
   user: User | null;
@@ -58,7 +49,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   async function fetchProfile(userId: string) {
-    // Using any as a workaround for the type issue
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
@@ -70,7 +60,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    setProfile(data as Profile);
+    setProfile(data);
   }
 
   const signIn = async (email: string, password: string) => {
@@ -86,7 +76,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       // Redirect based on user role
       if (data.user) {
-        // Using any as a workaround for the type issue
         const { data: profileData } = await supabase
           .from('profiles')
           .select('role')
