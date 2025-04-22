@@ -4,10 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { ShieldAlert } from "lucide-react";
 import { Link } from "react-router-dom";
-import { getCurrentUser } from '@/lib/auth';
+import { useAuth } from '@/lib/auth-context';
 
 const Unauthorized = () => {
-  const user = getCurrentUser();
+  const { profile } = useAuth();
   
   return (
     <div className="min-h-screen flex items-center justify-center bg-muted/30 px-4">
@@ -21,10 +21,10 @@ const Unauthorized = () => {
         <CardContent>
           <p className="text-sm text-muted-foreground mb-4">
             Maaf, Anda tidak memiliki izin untuk mengakses halaman ini. Akun Anda terdaftar sebagai 
-            <span className="font-semibold"> {user?.role === 'citizen' ? 'Masyarakat' : 
-              user?.role === 'secretary' ? 'Sekretaris Desa' : 
-              user?.role === 'village_head' ? 'Kepala Desa' : 
-              user?.role === 'super_admin' ? 'Super Admin' : 'Pengguna'}</span>.
+            <span className="font-semibold"> {profile?.role === 'citizen' ? 'Masyarakat' : 
+              profile?.role === 'secretary' ? 'Sekretaris Desa' : 
+              profile?.role === 'village_head' ? 'Kepala Desa' : 
+              profile?.role === 'super_admin' ? 'Super Admin' : 'Pengguna'}</span>.
           </p>
           <p className="text-sm text-muted-foreground">
             Silakan kembali ke halaman yang sesuai dengan peran Anda.

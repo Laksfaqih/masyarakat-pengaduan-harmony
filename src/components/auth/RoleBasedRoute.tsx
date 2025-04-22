@@ -27,6 +27,7 @@ const RoleBasedRoute: React.FC<RoleBasedRouteProps> = ({
   }
 
   const roles = Array.isArray(allowedRoles) ? allowedRoles : [allowedRoles];
+  // Ensure we're treating profile.role as UserRole type
   const hasPermission = profile && roles.includes(profile.role as UserRole);
 
   if (!hasPermission) {
