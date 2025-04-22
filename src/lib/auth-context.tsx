@@ -64,7 +64,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    setProfile(data);
+    // Add default role if not present
+    const profileWithRole = {
+      ...data,
+      role: (data as any).role || 'citizen'
+    } as Profile;
+
+    setProfile(profileWithRole);
     setLoading(false);
   }
 
@@ -86,21 +92,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       // Redirect based on user role
       if (data.user) {
-        const { data: profileData, error: profileError } = await supabase
-          .from('profiles')
+        // Instead of directly accessing profile.role, let's fetch the user roles from user_roles table
+        const { data: userRoleData, error: userRoleError } = await supabase
+          .from('user_roles')
           .select('role')
-          .eq('id', data.user.id)
+          .eq('user_id', data.user.id)
           .single();
 
-        if (profileError) {
-          console.error("Error fetching profile:", profileError);
-          toast.error("Gagal memuat profil pengguna");
+        if (userRoleError) {
+          console.error("Error fetching user role:", userRoleError);
+          // If no specific role is found, default to citizen role
+          navigate('/dashboard/citizen');
           return;
         }
 
-        if (profileData) {
-          console.log("User role:", profileData.role);
-          switch (profileData.role as UserRole) {
+        if (userRoleData) {
+          const role = userRoleData.role as UserRole;
+          console.log("User role:", role);
+          switch (role) {
             case 'super_admin':
               navigate('/dashboard/super-admin');
               break;
@@ -111,9 +120,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               navigate('/dashboard/village-head');
               break;
             case 'citizen':
+            default:
               navigate('/dashboard/citizen');
               break;
           }
+        } else {
+          // Default route if no role is found
+          navigate('/dashboard/citizen');
         }
       }
     } catch (error: any) {
