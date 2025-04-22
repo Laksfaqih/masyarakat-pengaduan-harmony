@@ -32,6 +32,7 @@ const Login = () => {
     setLoading(true);
     
     try {
+      console.log("Submitting login form with email:", email);
       await signIn(email, password);
     } catch (error) {
       console.error("Login error:", error);

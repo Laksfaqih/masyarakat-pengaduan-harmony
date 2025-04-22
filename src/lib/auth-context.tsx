@@ -29,6 +29,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(session?.user ?? null);
       if (session?.user) {
         fetchProfile(session.user.id);
+      } else {
+        setLoading(false);
       }
     });
 
@@ -36,6 +38,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log("Auth state changed:", event, session?.user?.email);
       setUser(session?.user ?? null);
       if (session?.user) {
         await fetchProfile(session.user.id);
@@ -57,32 +60,46 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     if (error) {
       console.error('Error fetching profile:', error);
+      setLoading(false);
       return;
     }
 
     setProfile(data);
+    setLoading(false);
   }
 
   const signIn = async (email: string, password: string) => {
     try {
+      console.log("Attempting to sign in with:", email);
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Sign in error:", error.message);
+        throw error;
+      }
 
+      console.log("Sign in successful:", data);
       toast.success('Login berhasil!');
 
       // Redirect based on user role
       if (data.user) {
-        const { data: profileData } = await supabase
+        const { data: profileData, error: profileError } = await supabase
           .from('profiles')
           .select('role')
           .eq('id', data.user.id)
           .single();
 
+        if (profileError) {
+          console.error("Error fetching profile:", profileError);
+          toast.error("Gagal memuat profil pengguna");
+          return;
+        }
+
         if (profileData) {
+          console.log("User role:", profileData.role);
           switch (profileData.role as UserRole) {
             case 'super_admin':
               navigate('/dashboard/super-admin');
@@ -100,7 +117,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       }
     } catch (error: any) {
-      toast.error(error.message || 'Error logging in');
+      console.error("Login error details:", error);
+      
+      // Show more descriptive error message
+      if (error.message.includes('Invalid login credentials')) {
+        toast.error('Email atau kata sandi salah. Silakan coba lagi.');
+      } else {
+        toast.error(error.message || 'Error logging in');
+      }
     }
   };
 
